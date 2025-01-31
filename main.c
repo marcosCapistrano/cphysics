@@ -25,9 +25,19 @@ int main(void)
             xi = 33;
             yj += 33;
         }
-        bodies[i] = NewBody(xi, yj, 0, 0, i, (i * 12 * 12) / 2);
-        bodies[i].shape = Shape_newCircle(12);
-        bodies[i].rotation = i * DEG2RAD;
+
+        if (i % 3 == 0)
+        {
+            bodies[i] = NewBody(xi, yj, 0, 0, i, (i * 12 * 12) / 2);
+            bodies[i].shape = Shape_newCircle(12);
+            bodies[i].rotation = i * DEG2RAD;
+        }
+        else
+        {
+            bodies[i] = NewBody(xi, yj, 0, 0, i, (i * 12 * 12) / 2);
+            bodies[i].shape = Shape_newBox(30, 30);
+            bodies[i].rotation = i * DEG2RAD;
+        }
     }
 
     SetTargetFPS(60); // Set our game to run at 60 frames-per-second
@@ -37,7 +47,7 @@ int main(void)
         for (int i = 0; i < BODY_COUNT; i++)
         {
             Body_addForce(&bodies[i], Force_newDragForce(bodies[i].velocity, 0.0001));
-            Body_addTorque(&bodies[i], 0.001);
+            Body_addTorque(&bodies[i], 0.1);
             Body_integrate(&bodies[i], GetFrameTime());
         }
 

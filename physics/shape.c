@@ -19,8 +19,8 @@ Shape Shape_newCircle(float radius)
 Shape Shape_newBox(float width, float height)
 {
     ShapeBox *box = malloc(sizeof(ShapeBox));
-    box->width = 10.0f;
-    box->height = 8.0f;
+    box->width = width;
+    box->height = height;
 
     Shape box_shape = {
         .type = BOX,
@@ -35,6 +35,18 @@ void Shape_draw(Shape shape, Vector2 position, float rotation)
     {
         ShapeCircle *data = (ShapeCircle *)shape.data;
         DrawCircleLines(position.x, position.y, data->radius, GREEN);
-        DrawLine(position.x, position.y, position.x + cos(rotation)*(data->radius), position.y - sin(rotation)*(data->radius), GREEN);
+        DrawLine(position.x, position.y, position.x + cos(rotation) * (data->radius), position.y - sin(rotation) * (data->radius), GREEN);
+    }
+    else if (shape.type == BOX)
+    {
+        ShapeBox *data = (ShapeBox *)shape.data;
+
+        Rectangle rect;
+        rect.x = position.x;
+        rect.y = position.y;
+        rect.width = data->width;
+        rect.height = data->height;
+
+        DrawRectanglePro(rect, (Vector2){.x = rect.width/2, .y=rect.height/2}, rotation, GREEN);
     }
 }

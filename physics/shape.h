@@ -1,6 +1,8 @@
 #ifndef SHAPE_H
 #define SHAPE_H
 
+#include "raymath.h"
+
 typedef enum ShapeType {
     CIRCLE,
     BOX,
@@ -18,7 +20,8 @@ typedef struct ShapeCircle {
 } ShapeCircle;
 
 typedef struct ShapeBox {
-    float width, height;
+    float width;
+    float height;
 } ShapeBox;
 
 typedef struct ShapePolygon {
