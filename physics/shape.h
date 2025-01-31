@@ -15,7 +15,6 @@ typedef struct Shape {
 
 typedef struct ShapeCircle {
     float radius; 
-    float angle;
 } ShapeCircle;
 
 typedef struct ShapeBox {
@@ -27,9 +26,9 @@ typedef struct ShapePolygon {
     int point_count;
 } ShapePolygon;
 
-Shape Shape_newCircle(float radius, float angle);
+Shape Shape_newCircle(float radius);
 Shape Shape_newBox(float width, float height);
 
-void Shape_draw(Vector2 position, Shape shape);
+void Shape_draw(Shape shape, Vector2 position, float rotation);
 
 #endif

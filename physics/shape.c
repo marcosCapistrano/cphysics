@@ -4,11 +4,10 @@
 #include "raymath.h"
 #include "shape.h"
 
-Shape Shape_newCircle(float radius, float angle)
+Shape Shape_newCircle(float radius)
 {
     ShapeCircle *circle = malloc(sizeof(ShapeCircle));
     circle->radius = radius;
-    circle->angle = angle;
 
     Shape circle_shape = {
         .type = CIRCLE,
@@ -30,12 +29,12 @@ Shape Shape_newBox(float width, float height)
     return box_shape;
 }
 
-void Shape_draw(Vector2 position, Shape shape)
+void Shape_draw(Shape shape, Vector2 position, float rotation)
 {
     if (shape.type == CIRCLE)
     {
         ShapeCircle *data = (ShapeCircle *)shape.data;
         DrawCircleLines(position.x, position.y, data->radius, GREEN);
-        DrawLine(position.x, position.y, position.x + cos(data->angle)*(data->radius), position.y - sin(data->angle)*(data->radius), GREEN);
+        DrawLine(position.x, position.y, position.x + cos(rotation)*(data->radius), position.y - sin(rotation)*(data->radius), GREEN);
     }
 }
