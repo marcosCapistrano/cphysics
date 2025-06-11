@@ -17,7 +17,7 @@ int main(void)
 {
     InitWindow(screenWidth, screenHeight, "raylib [core] example - 2d camera");
 
-    body = Body_new(400, 300, 50.0f);
+    body = Body_new(400, 500, 20.0f);
     Body_setShapeCircle(&body, 20.0f);
 
     body2 = Body_new(400, 200, 50.0f);
@@ -44,19 +44,24 @@ int main(void)
         if (body.position.y > screenHeight)
         {
             body.velocity.y = -body.velocity.y;
-            body.position.y = screenHeight-10;
+            body.position.y = screenHeight - 10;
         }
 
         if (body2.position.y > screenHeight)
         {
             body2.velocity.y = -body2.velocity.y;
-            body2.position.y = screenHeight-10;
+            body2.position.y = screenHeight - 10;
+        }
+
+        CollisionContact contact;
+        if (Physics_isCollidingCircleCircle(&body, &body2, &contact))
+        {
+            Physics_resolveCollision(&contact);
         }
 
         BeginDrawing();
         {
             ClearBackground(BLACK);
-
 
             Graphics_drawCircle(body.position, body.shape->circle.radius, body.rotation);
             Graphics_drawCircle(body2.position, body2.shape->circle.radius, body2.rotation);
@@ -72,7 +77,6 @@ int main(void)
 
                 DrawCircle(50, 50, 5, RED);
             }
-
         }
         EndDrawing();
     }

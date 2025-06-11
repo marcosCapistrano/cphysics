@@ -23,7 +23,10 @@ struct Body
     float momentOfInertia;
     float invMomentOfInertia;
 
+    float restitution;
+
     Shape *shape;
+    bool isStatic;
 };
 
 Body Body_new(float x, float y, float mass);
@@ -33,6 +36,7 @@ void Body_setShapeBox(Body *body, float width, float height);
 
 void Body_addForce(Body *particle, Vector2 force);
 void Body_addTorque(Body *body, float torque);
+void Body_applyImpulse(Body *body, Vector2 impulse);
 void Body_integrate(Body *particle, float deltaTime);
 
 #endif

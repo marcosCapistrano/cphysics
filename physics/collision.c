@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdbool.h>
+#include <math.h>
 #include "collision.h"
 #include "body.h"
 #include "shape.h"
@@ -29,4 +30,38 @@ bool Physics_isCollidingCircleCircle(Body *a, Body *b, CollisionContact *contact
     }   
 
     return isColliding;
+}
+
+void Physics_resolvePenetration(CollisionContact *contact)
+{
+    Body *a = contact->a;
+    Body *b = contact->b;
+
+    float da = contact->depth / (a->invMass + b->invMass) * a->invMass;
+    float db = contact->depth / (a->invMass + b->invMass) * b->invMass;
+
+    a->position = Vector2Subtract(a->position, Vector2Scale(contact->normal, da));
+    b->position = Vector2Add(b->position, Vector2Scale(contact->normal, db));
+}
+
+void Physics_resolveCollision(CollisionContact *contact)
+{
+    Physics_resolvePenetration(contact);
+
+    Body *a = contact->a;
+    Body *b = contact->b;
+
+    float e = fmin(a->restitution, b->restitution);
+
+    const Vector2 vrel = Vector2Subtract(a->velocity, b->velocity);
+    const float vrelDotNormal = Vector2DotProduct(vrel, contact->normal);
+
+    const Vector2 impulseDirection = contact->normal;
+    const float impulseMagnitude = -(1 + e) * vrelDotNormal / (a->invMass + b->invMass);
+
+    const Vector2 j = Vector2Scale(impulseDirection, impulseMagnitude);
+
+    Body_applyImpulse(a, j);
+    Body_applyImpulse(b, Vector2Negate(j));
+
 }

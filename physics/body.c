@@ -13,6 +13,8 @@ Body Body_new(float x, float y, float mass)
     newBody.position.x = x;
     newBody.position.y = y;
 
+    newBody.restitution = 0.5f;
+
     newBody.shape = NULL;
 
     return newBody;
@@ -52,6 +54,11 @@ void Body_addForce(Body *body, Vector2 force)
 void Body_addTorque(Body *body, float torque)
 {
     body->sumOfTorques = body->sumOfTorques + torque;
+}
+
+void Body_applyImpulse(Body *body, Vector2 impulse)
+{
+    body->velocity = Vector2Add(body->velocity, Vector2Scale(impulse, body->invMass)); 
 }
 
 void Body_integrate(Body *body, float deltaTime)
