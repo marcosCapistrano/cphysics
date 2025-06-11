@@ -11,7 +11,6 @@ Shape *Shape_newCircle(float radius)
     shape->circle.radius = radius;
 
     shape->momentOfInertia = radius * radius * 0.5;
-    printf("moment: %f\n", shape->momentOfInertia);
 
     return shape;
 }
@@ -28,7 +27,6 @@ Shape *Shape_newBox(float width, float height)
 
     shape->momentOfInertia = 0.083333f * ((width * width) + (height * height));
 
-    printf("moment: %f\n", shape->momentOfInertia);
 
     return shape;
 }

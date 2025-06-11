@@ -28,9 +28,6 @@ void Body_setShapeCircle(Body *body, float radius)
     float I = shape->momentOfInertia * body->mass;
     body->momentOfInertia = I;
     body->invMomentOfInertia = 1.0f/I;
-
-    printf("Moment circle: %f\n", body->momentOfInertia);
-    printf("InvMoment circle: %f\n", body->invMomentOfInertia);
 }
 
 void Body_setShapeBox(Body *body, float width, float height)
@@ -41,9 +38,6 @@ void Body_setShapeBox(Body *body, float width, float height)
     float I = shape->momentOfInertia * body->mass;
     body->momentOfInertia = I;
     body->invMomentOfInertia = 1.0f/I;
-
-    printf("Moment box: %f\n", body->momentOfInertia);
-    printf("InvMoment box: %f\n", body->invMomentOfInertia);
 }
 
 void Body_addForce(Body *body, Vector2 force)
@@ -58,6 +52,11 @@ void Body_addTorque(Body *body, float torque)
 
 void Body_applyImpulse(Body *body, Vector2 impulse)
 {
+    if(body->isStatic)
+    {
+        return;
+    }
+
     body->velocity = Vector2Add(body->velocity, Vector2Scale(impulse, body->invMass)); 
 }
 

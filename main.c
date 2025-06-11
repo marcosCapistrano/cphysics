@@ -10,18 +10,52 @@
 const int screenWidth = 800;
 const int screenHeight = 600;
 
-Body body;
-Body body2;
+const float radius = 20.0f;
+Body circleWall[71] = {0};
+Body circles[100] = {0};
 
 int main(void)
 {
     InitWindow(screenWidth, screenHeight, "raylib [core] example - 2d camera");
 
-    body = Body_new(400, 500, 20.0f);
-    Body_setShapeCircle(&body, 20.0f);
+    for (int i = 0; i < 20; i++)
+    {
+        circleWall[i] = Body_new(i * 40, 0, 10.0f);
+        Body_setShapeCircle(&circleWall[i], radius);
+        circleWall[i].isStatic = true;
+        circleWall[i].invMass = 0;
+    }
 
-    body2 = Body_new(400, 200, 50.0f);
-    Body_setShapeCircle(&body2, 50);
+    for (int i = 20; i < 40; i++)
+    {
+        circleWall[i] = Body_new((i - 20) * 40, 600, 10.0f);
+        Body_setShapeCircle(&circleWall[i], radius);
+        circleWall[i].isStatic = true;
+        circleWall[i].invMass = 0;
+    }
+
+    for (int i = 40; i < 55; i++)
+    {
+        circleWall[i] = Body_new(0, (i - 40) * 40, 10.0f);
+        Body_setShapeCircle(&circleWall[i], radius);
+        circleWall[i].isStatic = true;
+        circleWall[i].invMass = 0;
+    }
+
+    for (int i = 55; i < 71; i++)
+    {
+        circleWall[i] = Body_new(800, (i - 55) * 40, 10.0f);
+        Body_setShapeCircle(&circleWall[i], radius);
+        circleWall[i].isStatic = true;
+        circleWall[i].invMass = 0;
+    }
+
+    for (int i = 0; i < 100; i++)
+    {
+        circles[i] = Body_new(GetRandomValue(0, 600) + 40, GetRandomValue(0, 500) + 40, 5.0f);
+        Body_setShapeCircle(&circles[i], 10.0f);
+        circles[i].restitution = 1.0;
+    }
 
     SetTargetFPS(60); // Set our game to run at 60 frames-per-second
 
@@ -29,55 +63,57 @@ int main(void)
     {
         float deltaTime = GetFrameTime();
 
-        Body_addForce(&body, (Vector2){0, 9.8 * body.mass});
-        Body_addForce(&body, Force_newDragForce(body.velocity, 0.0001f));
-        Body_addTorque(&body, 100.1f * body.mass);
-        Body_integrate(&body, deltaTime);
-        Shape_update(body.shape, body.position, body.rotation);
-
-        Body_addForce(&body2, (Vector2){0, 9.8 * body2.mass});
-        Body_addForce(&body2, Force_newDragForce(body2.velocity, 0.0001f));
-        Body_addTorque(&body2, 100.1f * body2.mass);
-        Body_integrate(&body2, deltaTime);
-        Shape_update(body2.shape, body2.position, body2.rotation);
-
-        if (body.position.y > screenHeight)
+        for (int i = 0; i < 100; i++)
         {
-            body.velocity.y = -body.velocity.y;
-            body.position.y = screenHeight - 10;
+            Body_addForce(&circles[i], (Vector2){0, 9.8 * circles[i].mass});
+            Body_integrate(&circles[i], deltaTime);
+            Shape_update(circles[i].shape, circles[i].position, circles[i].rotation);
         }
 
-        if (body2.position.y > screenHeight)
+        for (int i = 0; i < 71; i++)
         {
-            body2.velocity.y = -body2.velocity.y;
-            body2.position.y = screenHeight - 10;
+            for (int j = 0; j < 100; j++)
+            {
+                CollisionContact contact;
+                if (Physics_isCollidingCircleCircle(&circles[j], &circleWall[i], &contact))
+                {
+                    Physics_resolveCollision(&contact);
+                }
+            }
         }
 
-        CollisionContact contact;
-        if (Physics_isCollidingCircleCircle(&body, &body2, &contact))
+        for (int i = 0; i < 100; i++)
         {
-            Physics_resolveCollision(&contact);
+            for (int j = 0; j < 100; j++)
+            {
+                if (i == j)
+                    continue;
+
+                CollisionContact contact;
+                if (Physics_isCollidingCircleCircle(&circles[i], &circles[j], &contact))
+                {
+                    Physics_resolveCollision(&contact);
+                }
+            }
         }
 
         BeginDrawing();
         {
             ClearBackground(BLACK);
 
-            Graphics_drawCircle(body.position, body.shape->circle.radius, body.rotation);
-            Graphics_drawCircle(body2.position, body2.shape->circle.radius, body2.rotation);
-
-            CollisionContact contact;
-            if (Physics_isCollidingCircleCircle(&body, &body2, &contact))
+            for (int i = 0; i < 71; i++)
             {
-                DrawCircle(contact.start.x, contact.start.y, 5, RED);
-                DrawCircle(contact.end.x, contact.end.y, 5, RED);
+                Body circle = circleWall[i];
+                Graphics_drawCircle(circle.position, circle.shape->circle.radius, circle.rotation);
+            }
 
-                printf("start: %f %f\n", contact.start.x, contact.start.y);
-                printf("end: %f %f\n\n", contact.end.x, contact.end.y);
-
-                DrawCircle(50, 50, 5, RED);
+            for (int i = 0; i < 100; i++)
+            {
+                Graphics_drawCircle(circles[i].position, circles[i].shape->circle.radius, circles[i].rotation);
             }
         }
+
+        DrawText(TextFormat("FPS: %.2f", 1.0f/GetFrameTime()), 80, 80, 16, WHITE);
         EndDrawing();
     }
 
