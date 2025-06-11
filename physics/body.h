@@ -4,7 +4,8 @@
 #include "raymath.h"
 #include "shape.h"
 
-typedef struct Body
+typedef struct Body Body;
+struct Body
 {
     Vector2 position;
     Vector2 velocity;
@@ -22,15 +23,16 @@ typedef struct Body
     float momentOfInertia;
     float invMomentOfInertia;
 
-    Shape shape;
-} Body;
+    Shape *shape;
+};
 
-Body NewBody(float x, float y, float velx, float vely, float mass, float moment);
+Body Body_new(float x, float y, float mass);
+
+void Body_setShapeCircle(Body *body, float radius);
+void Body_setShapeBox(Body *body, float width, float height);
 
 void Body_addForce(Body *particle, Vector2 force);
 void Body_addTorque(Body *body, float torque);
-void Body_clearForces(Body *particle);
 void Body_integrate(Body *particle, float deltaTime);
-void Body_draw(Body *particle);
 
 #endif

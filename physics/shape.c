@@ -1,52 +1,59 @@
 #include <stdlib.h>
 #include <stdio.h>
-#include "raylib.h"
-#include "raymath.h"
 #include "shape.h"
 
-Shape Shape_newCircle(float radius)
+Vector2 updateVertice(Vector2 vertice, float rotation);
+
+Shape *Shape_newCircle(float radius)
 {
-    ShapeCircle *circle = malloc(sizeof(ShapeCircle));
-    circle->radius = radius;
+    Shape *shape = malloc(sizeof(Shape));
+    shape->type = SHAPE_CIRCLE;
+    shape->circle.radius = radius;
 
-    Shape circle_shape = {
-        .type = CIRCLE,
-        .data = circle};
+    shape->momentOfInertia = radius * radius * 0.5;
+    printf("moment: %f\n", shape->momentOfInertia);
 
-    return circle_shape;
+    return shape;
 }
 
-Shape Shape_newBox(float width, float height)
+Shape *Shape_newBox(float width, float height)
 {
-    ShapeBox *box = malloc(sizeof(ShapeBox));
-    box->width = width;
-    box->height = height;
+    Shape *shape = malloc(sizeof(Shape));
+    shape->type = SHAPE_POLYGON;
 
-    Shape box_shape = {
-        .type = BOX,
-        .data = box};
+    shape->polygon.vertices[0] = (Vector2){-width / 2, -height / 2}; // top left
+    shape->polygon.vertices[1] = (Vector2){width / 2, -height / 2};  // top right
+    shape->polygon.vertices[2] = (Vector2){width / 2, height / 2};   // bottom right
+    shape->polygon.vertices[3] = (Vector2){-width / 2, height / 2};  // bottom left
 
-    return box_shape;
+    shape->momentOfInertia = 0.083333f * ((width * width) + (height * height));
+
+    printf("moment: %f\n", shape->momentOfInertia);
+
+    return shape;
 }
 
-void Shape_draw(Shape shape, Vector2 position, float rotation)
+void Shape_update(Shape *shape, Vector2 position, float rotation)
 {
-    if (shape.type == CIRCLE)
+    if (shape->type == SHAPE_POLYGON)
     {
-        ShapeCircle *data = (ShapeCircle *)shape.data;
-        DrawCircleLines(position.x, position.y, data->radius, GREEN);
-        DrawLine(position.x, position.y, position.x + cos(rotation) * (data->radius), position.y - sin(rotation) * (data->radius), GREEN);
+        shape->polygon.vertices[0] = updateVertice(shape->polygon.vertices[0], rotation);
+        shape->polygon.vertices[1] = updateVertice(shape->polygon.vertices[1], rotation);
+        shape->polygon.vertices[2] = updateVertice(shape->polygon.vertices[2], rotation);
+        shape->polygon.vertices[3] = updateVertice(shape->polygon.vertices[3], rotation);
     }
-    else if (shape.type == BOX)
-    {
-        ShapeBox *data = (ShapeBox *)shape.data;
+}
 
-        Rectangle rect;
-        rect.x = position.x;
-        rect.y = position.y;
-        rect.width = data->width;
-        rect.height = data->height;
+Vector2 updateVertice(Vector2 vertice, float rotation)
+{
+    // Apply rotation (in radians)
+    float rad = rotation * DEG2RAD;
+    float cosR = cosf(rad);
+    float sinR = sinf(rad);
 
-        DrawRectanglePro(rect, (Vector2){.x = rect.width/2, .y=rect.height/2}, rotation, GREEN);
-    }
+    Vector2 rotated = {
+        vertice.x * cosR - vertice.y * sinR,
+        vertice.x * sinR + vertice.y * cosR};
+
+    return rotated;
 }

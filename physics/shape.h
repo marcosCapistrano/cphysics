@@ -1,37 +1,36 @@
-#ifndef SHAPE_H
-#define SHAPE_H
+#ifndef PHYSICS_SHAPE_H
+#define PHYSICS_SHAPE_H
 
 #include "raymath.h"
 
-typedef enum ShapeType {
-    CIRCLE,
-    BOX,
-    POLYGON,
+typedef enum ShapeType
+{
+    SHAPE_CIRCLE,
+    SHAPE_POLYGON
 } ShapeType;
 
-typedef struct Shape {
-    ShapeType type; 
-    void *data;
-    bool (*check_collision) (void *shape1, void *shape2);
-} Shape;
+typedef struct Shape Shape;
+struct Shape
+{
+    ShapeType type;
+    float momentOfInertia;
+    union
+    {
+        struct
+        {
+            float radius;
+        } circle;
 
-typedef struct ShapeCircle {
-    float radius; 
-} ShapeCircle;
+        struct
+        {
+            Vector2 vertices[4];
+        } polygon;
+    };
+};
 
-typedef struct ShapeBox {
-    float width;
-    float height;
-} ShapeBox;
+Shape *Shape_newCircle(float radius);
+Shape *Shape_newBox(float width, float height);
 
-typedef struct ShapePolygon {
-    float *points;
-    int point_count;
-} ShapePolygon;
-
-Shape Shape_newCircle(float radius);
-Shape Shape_newBox(float width, float height);
-
-void Shape_draw(Shape shape, Vector2 position, float rotation);
+void Shape_update(Shape *shape, Vector2 position, float rotation);
 
 #endif

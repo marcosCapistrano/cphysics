@@ -4,61 +4,75 @@
 
 #include "physics/body.h"
 #include "physics/force.h"
+#include "physics/collision.h"
+#include "graphics/graphics.h"
 
 const int screenWidth = 800;
 const int screenHeight = 600;
 
-#define BODY_COUNT 360
-Body bodies[BODY_COUNT];
+Body body;
+Body body2;
 
 int main(void)
 {
     InitWindow(screenWidth, screenHeight, "raylib [core] example - 2d camera");
 
-    int xi = 0;
-    int yj = 33;
-    for (int i = 0; i < BODY_COUNT; i++)
-    {
-        xi += 33;
-        if ((xi + 43) > screenWidth)
-        {
-            xi = 33;
-            yj += 33;
-        }
+    body = Body_new(400, 300, 50.0f);
+    Body_setShapeCircle(&body, 20.0f);
 
-        if (i % 3 == 0)
-        {
-            bodies[i] = NewBody(xi, yj, 0, 0, i, (i * 12 * 12) / 2);
-            bodies[i].shape = Shape_newCircle(12);
-            bodies[i].rotation = i * DEG2RAD;
-        }
-        else
-        {
-            bodies[i] = NewBody(xi, yj, 0, 0, i, (i * 12 * 12) / 2);
-            bodies[i].shape = Shape_newBox(30, 30);
-            bodies[i].rotation = i * DEG2RAD;
-        }
-    }
+    body2 = Body_new(400, 200, 50.0f);
+    Body_setShapeCircle(&body2, 50);
 
     SetTargetFPS(60); // Set our game to run at 60 frames-per-second
 
     while (!WindowShouldClose()) // Detect window close button or ESC key
     {
-        for (int i = 0; i < BODY_COUNT; i++)
+        float deltaTime = GetFrameTime();
+
+        Body_addForce(&body, (Vector2){0, 9.8 * body.mass});
+        Body_addForce(&body, Force_newDragForce(body.velocity, 0.0001f));
+        Body_addTorque(&body, 100.1f * body.mass);
+        Body_integrate(&body, deltaTime);
+        Shape_update(body.shape, body.position, body.rotation);
+
+        Body_addForce(&body2, (Vector2){0, 9.8 * body2.mass});
+        Body_addForce(&body2, Force_newDragForce(body2.velocity, 0.0001f));
+        Body_addTorque(&body2, 100.1f * body2.mass);
+        Body_integrate(&body2, deltaTime);
+        Shape_update(body2.shape, body2.position, body2.rotation);
+
+        if (body.position.y > screenHeight)
         {
-            Body_addForce(&bodies[i], Force_newDragForce(bodies[i].velocity, 0.0001));
-            Body_addTorque(&bodies[i], 0.1);
-            Body_integrate(&bodies[i], GetFrameTime());
+            body.velocity.y = -body.velocity.y;
+            body.position.y = screenHeight-10;
+        }
+
+        if (body2.position.y > screenHeight)
+        {
+            body2.velocity.y = -body2.velocity.y;
+            body2.position.y = screenHeight-10;
         }
 
         BeginDrawing();
         {
             ClearBackground(BLACK);
 
-            for (int i = 0; i < BODY_COUNT; i++)
+
+            Graphics_drawCircle(body.position, body.shape->circle.radius, body.rotation);
+            Graphics_drawCircle(body2.position, body2.shape->circle.radius, body2.rotation);
+
+            CollisionContact contact;
+            if (Physics_isCollidingCircleCircle(&body, &body2, &contact))
             {
-                Body_draw(&bodies[i]);
+                DrawCircle(contact.start.x, contact.start.y, 5, RED);
+                DrawCircle(contact.end.x, contact.end.y, 5, RED);
+
+                printf("start: %f %f\n", contact.start.x, contact.start.y);
+                printf("end: %f %f\n\n", contact.end.x, contact.end.y);
+
+                DrawCircle(50, 50, 5, RED);
             }
+
         }
         EndDrawing();
     }

@@ -1,32 +1,47 @@
+#include <stdlib.h>
+#include <stdio.h>
 #include "raylib.h"
 #include "physics.h"
 #include "body.h"
 
-Body NewBody(float x, float y, float velx, float vely, float mass, float moment)
+Body Body_new(float x, float y, float mass)
 {
-    Body newBody = {
-        .position = Vector2Zero(),
-        .velocity = Vector2Zero(),
-        .acceleration = Vector2Zero(),
-        .sumOfForces = Vector2Zero(),
-        .sumOfTorques = 0,
-
-        .mass = mass,
-        .invMass = 1 / mass,
-        .momentOfInertia = moment,
-        .invMomentOfInertia = 1/moment,
-    };
+    Body newBody = {0};
+    newBody.mass = mass;
+    newBody.invMass = 1.0f / mass;
 
     newBody.position.x = x;
     newBody.position.y = y;
-    newBody.velocity.x = velx;
-    newBody.velocity.y = vely;
 
-    newBody.rotation = 0;
-    newBody.angularVelocity = 0;
-    newBody.angularVelocity = 0;
+    newBody.shape = NULL;
 
     return newBody;
+}
+
+void Body_setShapeCircle(Body *body, float radius)
+{
+    Shape *shape = Shape_newCircle(radius);
+    body->shape = shape;
+
+    float I = shape->momentOfInertia * body->mass;
+    body->momentOfInertia = I;
+    body->invMomentOfInertia = 1.0f/I;
+
+    printf("Moment circle: %f\n", body->momentOfInertia);
+    printf("InvMoment circle: %f\n", body->invMomentOfInertia);
+}
+
+void Body_setShapeBox(Body *body, float width, float height)
+{
+    Shape *shape = Shape_newBox(width, height);
+    body->shape = shape;
+
+    float I = shape->momentOfInertia * body->mass;
+    body->momentOfInertia = I;
+    body->invMomentOfInertia = 1.0f/I;
+
+    printf("Moment box: %f\n", body->momentOfInertia);
+    printf("InvMoment box: %f\n", body->invMomentOfInertia);
 }
 
 void Body_addForce(Body *body, Vector2 force)
@@ -39,19 +54,9 @@ void Body_addTorque(Body *body, float torque)
     body->sumOfTorques = body->sumOfTorques + torque;
 }
 
-void Body_clearForces(Body *particle)
-{
-    particle->sumOfForces = Vector2Zero();
-}
-
-void Body_clearTorques(Body *body)
-{
-    body->sumOfTorques = 0;
-}
-
 void Body_integrate(Body *body, float deltaTime)
 {
-    //LINEAR
+    // LINEAR
     body->acceleration.x = body->sumOfForces.x * PIXELS_PER_METER * body->invMass;
     body->acceleration.y = body->sumOfForces.y * PIXELS_PER_METER * body->invMass;
 
@@ -61,16 +66,12 @@ void Body_integrate(Body *body, float deltaTime)
     body->position.x += body->velocity.x * deltaTime;
     body->position.y += body->velocity.y * deltaTime;
 
-    //ANGULAR
-    body->angularAcceleration += body->sumOfTorques + body->invMomentOfInertia;
+    // ANGULAR
+    body->angularAcceleration += body->sumOfTorques * body->invMomentOfInertia;
     body->angularVelocity += body->angularAcceleration * deltaTime;
-    body->rotation += body->angularVelocity *deltaTime;
+    body->rotation += body->angularVelocity * deltaTime;
 
-    Body_clearForces(body);
-    Body_clearTorques(body);
-}
-
-void Body_draw(Body *body)
-{
-    Shape_draw(body->shape, body->position, body->rotation);
+    // Clear force and torque
+    body->sumOfForces = Vector2Zero();
+    body->sumOfTorques = 0;
 }
