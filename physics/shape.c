@@ -31,18 +31,7 @@ Shape *Shape_newBox(float width, float height)
     return shape;
 }
 
-void Shape_update(Shape *shape, Vector2 position, float rotation)
-{
-    if (shape->type == SHAPE_POLYGON)
-    {
-        shape->polygon.vertices[0] = updateVertice(shape->polygon.vertices[0], rotation);
-        shape->polygon.vertices[1] = updateVertice(shape->polygon.vertices[1], rotation);
-        shape->polygon.vertices[2] = updateVertice(shape->polygon.vertices[2], rotation);
-        shape->polygon.vertices[3] = updateVertice(shape->polygon.vertices[3], rotation);
-    }
-}
-
-Vector2 updateVertice(Vector2 vertice, float rotation)
+Vector2 rotateVertice(Vector2 vertice, float rotation)
 {
     // Apply rotation (in radians)
     float rad = rotation * DEG2RAD;
@@ -55,3 +44,30 @@ Vector2 updateVertice(Vector2 vertice, float rotation)
 
     return rotated;
 }
+
+void Shape_updateVertices(Shape *shape, Vector2 position, float rotation)
+{
+    Vector2 rotatedVertices[4];
+    rotatedVertices[0] = rotateVertice(shape->polygon.vertices[0], rotation);
+    rotatedVertices[1] = rotateVertice(shape->polygon.vertices[1], rotation);
+    rotatedVertices[2] = rotateVertice(shape->polygon.vertices[2], rotation);
+    rotatedVertices[3] = rotateVertice(shape->polygon.vertices[3], rotation);
+
+    shape->polygon.worldVertices[0] = Vector2Add(rotatedVertices[0], position);
+    shape->polygon.worldVertices[1] = Vector2Add(rotatedVertices[1], position);
+    shape->polygon.worldVertices[2] = Vector2Add(rotatedVertices[2], position);
+    shape->polygon.worldVertices[3] = Vector2Add(rotatedVertices[3], position);
+}
+
+Vector2 Shape_edgeAt(Shape *shape, int verticeIndex)
+{
+    int nextVertice = verticeIndex+1;
+    if(nextVertice > 3)
+        nextVertice = 0;
+
+    Vector2 vertice1 = shape->polygon.worldVertices[verticeIndex];
+    Vector2 vertice2 = shape->polygon.worldVertices[nextVertice];
+
+    return Vector2Subtract(vertice2, vertice1);
+}
+

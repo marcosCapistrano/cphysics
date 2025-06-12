@@ -17,6 +17,7 @@ struct CollisionContact
 };
 
 bool Physics_isCollidingCircleCircle(Body *a, Body *b, CollisionContact *contact);
+bool Physics_isCollidingBoxBox(Body *a, Body *b, CollisionContact *contact);
 void Physics_resolveCollision(CollisionContact *contact);
 
 #endif

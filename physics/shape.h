@@ -24,6 +24,7 @@ struct Shape
         struct
         {
             Vector2 vertices[4];
+            Vector2 worldVertices[4];
         } polygon;
     };
 };
@@ -31,6 +32,7 @@ struct Shape
 Shape *Shape_newCircle(float radius);
 Shape *Shape_newBox(float width, float height);
 
-void Shape_update(Shape *shape, Vector2 position, float rotation);
+void Shape_updateVertices(Shape *shape, Vector2 position, float rotation);
+Vector2 Shape_edgeAt(Shape *shape, int verticeIndex);
 
 #endif

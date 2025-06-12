@@ -1,6 +1,9 @@
+#include <stdio.h>
 #include <math.h>
 #include "graphics.h"
+#include "raylib.h"
 #include "raymath.h"
+
 
 void Graphics_drawCircle(Vector2 position, float radius, float rotation)
 {
@@ -8,20 +11,15 @@ void Graphics_drawCircle(Vector2 position, float radius, float rotation)
     DrawLine(position.x, position.y, position.x + (radius * cos(DEG2RAD * rotation)), position.y + (radius * sin(DEG2RAD * rotation)), BLACK);
 }
 
-void Graphics_drawPolygon(Vector2 position, Vector2 *vertices)
+void Graphics_drawPolygon(Vector2 position, Vector2 *worldVertices, float rotation, Color color)
 {
-    Vector2 worldVertices[6];
-    worldVertices[0] = position;
-    worldVertices[1] = Vector2Add(vertices[0], position); // top-left
-    worldVertices[2] = Vector2Add(vertices[3], position); // bottom-left
-    worldVertices[3] = Vector2Add(vertices[2], position); // bottom-right
-    worldVertices[4] = Vector2Add(vertices[1], position); // top-right
-    worldVertices[5] = Vector2Add(vertices[0], position); // top-left
+    Vector2 vertices[6];
+    vertices[0] = position;
+    vertices[1] = worldVertices[0]; // top-left
+    vertices[2] = worldVertices[3]; // bottom-left
+    vertices[3] = worldVertices[2];  // bottom-right
+    vertices[4] = worldVertices[1]; // top-right
+    vertices[5] = worldVertices[0]; // top-left
 
-    DrawTriangleFan(worldVertices, 6, GREEN);
-
-    // for (int i = 0; i < 5; i++)
-    // {
-    //     DrawCircleV(worldVertices[i], 4, RED);
-    // }
+    DrawTriangleFan(vertices, 6, color);
 }
