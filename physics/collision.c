@@ -47,36 +47,45 @@ void projectPolygonOntoAxis(Vector2 *vertices, int count, Vector2 axis, float *m
     }
 }
 
-float findMinSeparation(Shape *aShape, Shape *bShape)
+float findMinSeparation(Shape *aShape, Shape *bShape, Vector2 *axis, Vector2 *point)
 {
     float separation = -FLT_MAX;
 
+    // For each vertice 
     for (int i = 0; i < 4; i++)
     {
-        Vector2 va = aShape->polygon.worldVertices[i];
-        Vector2 vb = aShape->polygon.worldVertices[(i + 1) % 4];
+        // vertices for edge
+        Vector2 va1 = aShape->polygon.worldVertices[i];
+        Vector2 va2 = aShape->polygon.worldVertices[(i + 1) % 4];
 
-        Vector2 edge = Vector2Subtract(vb, va);
+        Vector2 edge = Vector2Subtract(va1, va2);
         Vector2 normal = Vector2Normalize((Vector2){-edge.y, edge.x});
 
-        float minA, maxA;
-        float minB, maxB;
-
-        projectPolygonOntoAxis(aShape->polygon.worldVertices, 4, normal, &minA, &maxA);
-        projectPolygonOntoAxis(bShape->polygon.worldVertices, 4, normal, &minB, &maxB);
-
-        // Check for gap
-        if (maxA < minB || maxB < minA)
+        float minSeparation = FLT_MAX;
+        Vector2 minVertex;
+        for(int j = 0; j < 4; j++)
         {
-            // No overlap
-            return maxB < minA ? minA - maxB : minB - maxA;
+            Vector2 vb = bShape->polygon.worldVertices[j];
+            Vector2 vab = Vector2Subtract(vb, va1);
+            float proj = Vector2DotProduct(vab, normal);
+            if(proj < minSeparation)
+            {
+                minSeparation = proj;
+                minVertex = vb;
+            }
         }
 
-        // Overlap exists, compute how deep the penetration is
-        float axisSeparation = fmin(maxA, maxB) - fmax(minA, minB);
-        separation = fmin(separation, axisSeparation); // <-- Store smallest overlap
-    }
+        if(minSeparation > separation)
+        {
+            separation = minSeparation;
 
+            (*axis).x = edge.x;
+            (*axis).y = edge.y;
+
+            (*point).x = minVertex.x;
+            (*point).y = minVertex.y;
+        }
+    }
     return separation;
 }
 
@@ -85,14 +94,37 @@ bool Physics_isCollidingBoxBox(Body *a, Body *b, CollisionContact *contact)
     Shape *aShape = a->shape;
     Shape *bShape = b->shape;
 
-    if(findMinSeparation(aShape, bShape) >= 0)
+    Vector2 aAxis, bAxis;
+    Vector2 aPoint, bPoint;
+
+    float abSeparation = findMinSeparation(aShape, bShape, &aAxis, &aPoint);
+    if(abSeparation >= 0)
     {
         return false;
     }
 
-    if(findMinSeparation(bShape, aShape) >= 0)
+    float baSeparation = findMinSeparation(bShape, aShape, &bAxis, &bPoint);
+    if(baSeparation >= 0)
     {
         return false;
+    }
+
+    (*contact).a = a;
+    (*contact).b = b;
+
+    if(abSeparation > baSeparation)
+    {
+        contact->depth = -abSeparation;
+        contact->normal = Vector2Normalize((Vector2){-aAxis.y, aAxis.x});
+        contact->start = aPoint;
+        contact->end = Vector2Add(aPoint, Vector2Scale(contact->normal, contact->depth));
+    }
+    else
+    {
+        contact->depth = -baSeparation;
+        contact->normal = Vector2Negate(Vector2Normalize((Vector2){-bAxis.y, bAxis.x}));
+        contact->start = Vector2Subtract(bPoint, Vector2Scale(contact->normal, contact->depth));
+        contact->end = bPoint;
     }
 
     return true;
